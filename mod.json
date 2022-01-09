@@ -2,9 +2,9 @@
   "name": "block placer",
   "author": "[#3599ff]Light",
   "displayName": "Block placer",
-  "description": "actualy works somehow...",
+  "description": "funny description",
   "dependencies": [ "ui-lib" ],
-  "version": "1.2",
+  "version": "1.6",
   "hidden": true,
   "minGameVersion": 105
 }
