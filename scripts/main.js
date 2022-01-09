@@ -114,7 +114,7 @@ ui.onLoad(() => {
 		dialog.hide();
 		ui.click((screen, world) => {
 			bPos.set(Math.round(world.x/8), Math.round(world.y/8));
-			posDial.getLabel().text = "Place at " + Math.round(bPos.x) + ", " + Math.round(bPos.y);
+			posDial.getLabel().text = "Place at " + bPos.x + ", " + bPos.y;
 			dialog.show();
 		}, true);
 	}).width(250).get();
