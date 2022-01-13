@@ -2,9 +2,9 @@
   "name": "block placer",
   "author": "[#3599ff]Light",
   "displayName": "Block placer",
-  "description": "funny description",
+  "description": "Mod that places blocks (from mods too) using js",
   "dependencies": [ "ui-lib" ],
-  "version": " Who said that this needs to be a number?",
+  "version": "your iq\n\nWho said that this needs to be a number?",
   "hidden": true,
   "minGameVersion": 105
 }
