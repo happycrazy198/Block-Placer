@@ -4,7 +4,7 @@
   "displayName": "Block placer",
   "description": "Mod that places blocks (from mods too) using js",
   "dependencies": [ "ui-lib" ],
-  "version": "your iq\n\nWho said that this needs to be a number?",
+  "version": " your iq",
   "hidden": true,
   "minGameVersion": 105
 }
