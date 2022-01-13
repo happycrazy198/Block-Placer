@@ -59,10 +59,8 @@ ui.onLoad(() => {
 		const blocks = Vars.content.blocks();
 		blocks.sort();
 		
-		var j;
 		var maxLine;
-		//what the... it works tho... kinda
-		if ((j = Math.floor((Core.graphics.width / Vars.content.blocks().size) * 2)) == 0) { maxLine = 1 } else { maxLine = j };
+		if (Vars.mobile) { maxLine = 4 } else { maxLine = 10 }
 			
 		blocks.each(block => {
 			
