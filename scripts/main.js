@@ -19,7 +19,7 @@ function placeLocal() {
 		Vars.world.tile(bPos.x, bPos.y).setNet(bType, bTeam, bRot);
 		
 	} else {
-		Call.sendMessage("[scarlet]error: illegal coordinates");
+		Call.sendMessage("[scarlet]ERROR: illegal coordinates");
 		Log.err("impossible to place " + bType + " at x: " + bPos.x + " y: " + bPos.y);
 	}
 
@@ -36,7 +36,7 @@ function placeRemote() {
 		Call.sendChatMessage("/js " + code);
 		
 	} else {
-		Call.sendMessage("[scarlet]error: illegal coordinates")
+		Call.sendMessage("[scarlet]ERROR: illegal coordinates")
 		Log.err("impossible to place " + bType + " at x: " + bPos.x + " y: " + bPos.y)
 	}
 }
@@ -122,7 +122,7 @@ ui.onLoad(() => {
 	dialog.addCloseButton();
 	
 	dialog.buttons.button("Place block", Icon.modeSurvival, place)
-	.disabled(() => !!Vars.state.sector);
+	.disabled(() => Vars.state.isCampaign());
 	
 	const iconCol = extend(TextureRegionDrawable, Tex.whiteui, {});
 	iconCol.tint.set(bTeam.color);
