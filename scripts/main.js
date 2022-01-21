@@ -5,8 +5,8 @@ var dialog = null, button = null;
 //change to show ALL blocks (not racommended)
 const showAllBlocks = false;
 
-var bRot = 1;
-const maxRot = 4; //slider doesn't accept 0 as input, so to have rotation 0 set it to 4
+var bRot = 0;
+const maxRot = 3;
 
 var bType = Blocks.coreNucleus;
 var bTeam = Vars.state.rules.defaultTeam;
@@ -92,14 +92,14 @@ ui.onLoad(() => {
 	var rotSlider, rotField;
 	rotDial.defaults().left();
 	
-	rotSlider = rotDial.slider(1, maxRot, bRot, num => {
+	rotSlider = rotDial.slider(0, maxRot, bRot, num => {
 		bRot = num;
 		rotField.text = num;
 	}).get();
 	
 	rotDial.add(" rotation: ");
 	
-	rotField = rotDial.field(" " + bRot, text => {
+	rotField = rotDial.field("" + bRot, text => {
 		bRot = parseInt(text);
 		rotSlider.value = bRot;
 	}).get();
