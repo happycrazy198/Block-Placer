@@ -2,7 +2,7 @@
 const ui = require("ui-lib/library");
 var dialog = null; var button = null;
 const showAllBlocks = false;
-const maxLoop = 25;
+const maxLoop = 25 * 25;
 
 var block = Blocks.coreNucleus;
 var team = Vars.state.rules.defaultTeam;
@@ -24,7 +24,7 @@ function place() {
 		if (Vars.net.client()) {
 			//remote
 			const code = [
-				"Vars.world.tile(" + blockX + ", " + blockY + ").setNet(Vars.content.block(" + block.id + "), Team.all[" + team.id + "], " + rot + ")"
+				"Vars.world.tile(" + blockX + ", " + blockY + ").setNet(Vars.content.block(" + block.id + "), Team.get(" + team.id + "), " + rot + ")"
 			].join("");
 
 			Call.sendChatMessage("/js " + code);
@@ -63,7 +63,7 @@ function fill() {
 		if (Vars.net.client()) {
 			// remote
 			var code = [
-				"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(block.size / 2)) + "+" + block.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(block.size / 2) + "+" + block.size) + "*j; Vars.world.tile(x, y).setNet(Vars.content.block(" + block.id + "), Team.get(" + team.id + "), " + rot + ")}"
+				"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(block.size / 2)) + "+" + block.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(block.size / 2) + "+" + block.size) + "*j; Vars.world.tile(x, y).setNet(Vars.content.block(" + block.id + "), Team.get(" + team.id + "), " + rot + ")}}"
 			].join("");
 
 			Call.sendChatMessage("/js " + code);
@@ -87,13 +87,13 @@ function fill() {
 
 		if (!Vars.world.tile(endPos.x, endPos.y)) {
 			Vars.player.sendMessage("[Block Placer] [scarlet]ERROR: invalid ending coordinates");
-			Log.errTag("Block Placer", "[scarlet]the block cound't be placed because the ending position is x: " + startPos.x + " y: " + startPos.y);
+			Log.errTag("Block Placer", "[scarlet]the block cound't be placed because the ending position is x: " + endPos.x + " y: " + endPos.y);
 		}
 
 		if (timesX * timesY > maxLoop) {
 			// the loop is too big
 			Vars.player.sendMessage("[Block Placer] [scarlet]ERROR: loop is too big")
-			Log.warn("[Block Placer] [scarlet]ERROR: loop is too big, " + (timesX * timesY) + "is bigger than the max (" + maxLoop * maxLoop + ")");
+			Log.warn("[Block Placer] [scarlet]ERROR: loop is too big, you are trying to loop " + (timesX * timesY) + " times, the max is: " + maxLoop * maxLoop);
 		}
 
 	}
