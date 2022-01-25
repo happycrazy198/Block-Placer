@@ -1,139 +1,214 @@
 
 const ui = require("ui-lib/library");
-var dialog = null, button = null;
-
-//change to show ALL blocks (not racommended)
+var dialog = null; var button = null;
 const showAllBlocks = false;
+const maxLoop = 25;
 
-var bRot = 0;
-const maxRot = 3;
+var block = Blocks.coreNucleus;
+var team = Vars.state.rules.defaultTeam;
+var rot = 0;
 
-var bType = Blocks.coreNucleus;
-var bTeam = Vars.state.rules.defaultTeam;
-const bPos = new Vec2(-1, -1);
+const startPos = new Vec2(-1, -1);
+const endPos = new Vec2(-1, -1);
+var blockX, blockY;
 
-function placeLocal() {
-
-	if (Vars.world.tile(bPos.x, bPos.y)) {
-		
-		Vars.world.tile(bPos.x, bPos.y).setNet(bType, bTeam, bRot);
-		
-	} else {
-		Call.sendMessage("[scarlet]ERROR: illegal coordinates");
-		Log.err("impossible to place " + bType + " at x: " + bPos.x + " y: " + bPos.y);
-	}
-
-}
-
-function placeRemote() {
-	
-	if (Vars.world.tile(bPos.x, bPos.y)) {
-		
-		const code = [
-			"Vars.world.tile(" + bPos.x + ", " + bPos.y + ").setNet(Vars.content.getByID(ContentType.block, " + bType.id + "), Team.all[" + bTeam.id + "], " + bRot + ")"
-		].join("");
-		
-		Call.sendChatMessage("/js " + code);
-		
-	} else {
-		Call.sendMessage("[scarlet]ERROR: illegal coordinates")
-		Log.err("impossible to place " + bType + " at x: " + bPos.x + " y: " + bPos.y)
-	}
+function singlePlace() {
+	blockX = startPos.x;
+	blockY = startPos.y;
+	place();
 }
 
 function place() {
-	(Vars.net.client() ? placeRemote : placeLocal)();
+
+	if (Vars.world.tile(blockX, blockY)) {
+		if (Vars.net.client()) {
+			//remote
+			const code = [
+				"Vars.world.tile(" + blockX + ", " + blockY + ").setNet(Vars.content.block(" + block.id + "), Team.all[" + team.id + "], " + rot + ")"
+			].join("");
+
+			Call.sendChatMessage("/js " + code);
+
+		} else {
+			//local
+			Vars.world.tile(blockX, blockY).setNet(block, team, rot);
+		}
+	} else {
+		Vars.player.sendMessage("[Block Placer] [scarlet]ERROR: invalid coordinates");
+		Log.errTag("Block Placer", "[scarlet]the block: " + block + " [scarlet]cound't be placed at x: " + blockX + " y: " + blockY);
+	}
+
+}
+
+function fill() {
+
+	if (startPos.x > endPos.x) {
+		var temp = startPos.x;
+		startPos.set(endPos.x, startPos.y);
+		endPos.set(temp, endPos.y);
+	}
+
+	if (startPos.y > endPos.y) {
+		var temp = startPos.y;
+		startPos.set(startPos.x, endPos.y);
+		endPos.set(endPos.x, temp);
+	}
+
+	var timesX = Math.round((endPos.x - startPos.x) / block.size);
+	var timesY = Math.round((endPos.y - startPos.y) / block.size);
+	var error = !(Vars.world.tile(startPos.x, startPos.y) && Vars.world.tile(endPos.x, endPos.y) && (timesX * timesY) < maxLoop);
+
+	if (!error) {
+
+		if (Vars.net.client()) {
+			// remote
+			var code = [
+				"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(block.size / 2)) + "+" + block.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(block.size / 2) + "+" + block.size) + "*j; Vars.world.tile(x, y).setNet(Vars.content.block(" + block.id + "), Team.get(" + team.id + "), " + rot + ")}"
+			].join("");
+
+			Call.sendChatMessage("/js " + code);
+
+		} else {
+			// local
+			for (var i = 0; i < timesX; i++) {
+				blockX = startPos.x + Math.floor(block.size / 2) + block.size * i;
+				for (var j = 0; j < timesY; j++) {
+					blockY = startPos.y + Math.floor(block.size / 2) + block.size * j;
+					place(); // this is local, won't realy matter if we spam it
+				}
+			}
+		}
+	} else {
+		// something is wrong
+		if (!Vars.world.tile(startPos.x, startPos.y)) {
+			Vars.player.sendMessage("[Block Placer] [scarlet]ERROR: invalid starting coordinates");
+			Log.errTag("Block Placer", "[scarlet]the block cound't be placed because the starting position is x: " + startPos.x + " y: " + startPos.y);
+		}
+
+		if (!Vars.world.tile(endPos.x, endPos.y)) {
+			Vars.player.sendMessage("[Block Placer] [scarlet]ERROR: invalid ending coordinates");
+			Log.errTag("Block Placer", "[scarlet]the block cound't be placed because the ending position is x: " + startPos.x + " y: " + startPos.y);
+		}
+
+		if (timesX * timesY > maxLoop) {
+			// the loop is too big
+			Vars.player.sendMessage("[Block Placer] [scarlet]ERROR: loop is too big")
+			Log.warn("[Block Placer] [scarlet]ERROR: loop is too big, " + (timesX * timesY) + "is bigger than the max (" + maxLoop * maxLoop + ")");
+		}
+
+	}
 }
 
 ui.onLoad(() => {
+
 	dialog = new BaseDialog("Place a block");
 	const table = dialog.cont;
 
-	table.label(() => bType.localizedName);
+	table.label(() => block.localizedName);
 
 	table.row();
 
 	table.pane(list => {
-		
+
 		var i = 0;
 		const blocks = Vars.content.blocks();
 		blocks.sort();
-		
+
 		var maxLine;
 		if (Vars.mobile) { maxLine = 4 } else { maxLine = 10 }
-			
-		blocks.each(block => {
-			
+
+		blocks.each(build => {
+
 			//sort out unusefull blocks/buggy blocks (to turn off set "showAllBlocks" to true)
-			if ((block == "build1" || block == "build2" || block == "build3" || block == "build4" ||
-				block == "build5" || block == "build6" || block == "build7" || block == "build8" ||
-				block == "build9" || block == "build10" || block == "build11" || block == "build12" ||
-				block == "build13" || block == "build14" || block == "build15" || block == "build16" ||
-				block == "legacy-mech-pad" || block == "legacy-unit-factory" || block == "legacy-unit-factory-air" || block == "legacy-unit-factory-ground" ||
-				block == "air" || block == "empty") && !showAllBlocks) { return }
-			
+			if ((build == "build1" || build == "build2" || build == "build3" || build == "build4" ||
+				build == "build5" || build == "build6" || build == "build7" || build == "build8" ||
+				build == "build9" || build == "build10" || build == "build11" || build == "build12" ||
+				build == "build13" || build == "build14" || build == "build15" || build == "build16" ||
+				build == "legacy-mech-pad" || build == "legacy-unit-factory" || build == "legacy-unit-factory-air" || build == "legacy-unit-factory-ground" ||
+				build == "empty") && !showAllBlocks) { return }
+
 			if (i++ % maxLine == 0) {
 				list.row();
 			}
-			
-			const icon = new TextureRegionDrawable(block.icon(Cicon.full));
+
+			const icon = new TextureRegionDrawable(build.icon(Cicon.full));
 			list.button(icon, () => {
-				bType = block;
+				block = build;
 				button.style.imageUp = icon;
 			}).size(128);
-			
+
 		});
 
 	}).top().center();
-	
+
 	table.row();
-	
-	const rotDial = table.table().center().bottom().get();
-	var rotSlider, rotField;
-	rotDial.defaults().left();
-	
-	rotSlider = rotDial.slider(0, maxRot, bRot, num => {
-		bRot = num;
-		rotField.text = num;
+
+	const sliders = table.table().center().bottom().get();
+	var rotSlider, rotField, teamSlider, teamField;
+	sliders.defaults().left();
+
+	rotSlider = sliders.slider(0, 3, 1, rot, n => {
+		rot = n;
+		rotField.text = n;
 	}).get();
-	
-	rotDial.add(" rotation: ");
-	
-	rotField = rotDial.field("" + bRot, text => {
-		bRot = parseInt(text);
-		rotSlider.value = bRot;
+
+	sliders.add(" rotation: ");
+
+	rotField = sliders.field("" + rot, text => {
+		rot = parseInt(text);
+		rotSlider.value = rot;
 	}).get();
 	rotField.validator = text => !isNaN(parseInt(text));
-	
+
 	table.row();
-	
-	var posDial;
-	posDial = table.button("Set position", () => {
+
+	teamSlider = sliders.slider(0, 255, 1, team, m => {
+		team = Team.get(m);
+		teamField.text = m;
+	}).get();
+
+	sliders.add(" team id: ");
+
+	teamField = sliders.field(team.id, text => {
+		team = Team.get(parseInt(text));
+		teamSlider.value = parseInt(text);
+	}).get();
+	teamField.validator = text => !isNaN(parseInt(text));
+
+	var posDial = table.table().center().bottom().get();
+
+	var startPosDial;
+	startPosDial = posDial.button("Set start position", () => {
 		dialog.hide();
 		ui.click((screen, world) => {
-			bPos.set(Math.round(world.x/8), Math.round(world.y/8));
-			posDial.getLabel().text = "Place at " + bPos.x + ", " + bPos.y;
+			startPos.set(Math.round(world.x / 8), Math.round(world.y / 8));
+			startPosDial.getLabel().text = "start pos: " + startPos.x + ", " + startPos.y;
 			dialog.show();
 		}, true);
 	}).width(250).get();
-	
+
+	var endPosDial;
+	endPosDial = posDial.button("Set end position", () => {
+		dialog.hide();
+		ui.click((screen, world) => {
+			endPos.set(Math.round(world.x / 8), Math.round(world.y / 8));
+			endPosDial.getLabel().text = "end pos: " + endPos.x + ", " + endPos.y;
+			dialog.show();
+		}, true);
+	}).width(250).get();
+
 	table.row();
-	
+
 	dialog.addCloseButton();
-	
-	dialog.buttons.button("Place block", Icon.modeSurvival, place)
-	.disabled(() => Vars.state.isCampaign());
-	
-	const iconCol = extend(TextureRegionDrawable, Tex.whiteui, {});
-	iconCol.tint.set(bTeam.color);
-	dialog.buttons.button("Set team", iconCol, 40, () => {
-		ui.select("Set team", Team.all, t => {
-			bTeam = t;
-			iconCol.tint.set(bTeam.color);
-		}, (i, t) => "[#" + t.color + "]" + t);
-	});
+
+	dialog.buttons.button("Place block", Icon.terrain, singlePlace)
+		.disabled(() => Vars.state.isCampaign());
+
+	dialog.buttons.button("Fill blocks", Icon.fill, fill)
+		.disabled(() => Vars.state.isCampaign());
 });
 
-ui.addButton("Block placer", bType, () => {
+
+ui.addButton("Block placer", block, () => {
 	dialog.show();
 }, b => { button = b.get() });
