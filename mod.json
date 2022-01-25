@@ -1,10 +1,10 @@
 {
-  "name": "block placer",
+  "name": "blockPlacer",
   "author": "[#3599ff]Light",
-  "displayName": "Block placer",
-  "description": "Mod that places blocks (from mods too) using js",
+  "displayName": "Block Placer",
+  "description": "A mindustry mod that places blocks using js, is compatable with [purple]modded []blocks too",
   "dependencies": [ "ui-lib" ],
-  "version": " your iq",
+  "version": "irtual reality",
   "hidden": true,
   "minGameVersion": 105
 }
