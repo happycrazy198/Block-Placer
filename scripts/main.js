@@ -2,7 +2,7 @@
 const ui = require("ui-lib/library");
 var dialog = null; var button = null;
 const showAllBlocks = false;
-const maxLoop = 25 * 25;
+const maxLoop = 1000;
 
 var block = Blocks.coreNucleus;
 var team = Vars.state.rules.defaultTeam;
@@ -21,21 +21,37 @@ function singlePlace() {
 function place() {
 
 	if (Vars.world.tile(blockX, blockY)) {
-		if (Vars.net.client()) {
-			//remote
-			const code = [
-				"Vars.world.tile(" + blockX + ", " + blockY + ").setNet(Vars.content.block(" + block.id + "), Team.get(" + team.id + "), " + rot + ")"
-			].join("");
 
-			Call.sendChatMessage("/js " + code);
+		if (Vars.net.client()) {
+			// is remote
+			if (block.id < 3 || (block.id > 18 && block.id < 94)) {
+				// is floor
+				const code = [
+					"Vars.world.tile(" + blockX + ", " + blockY + ").setFloor(Vars.content.block(" + block.id + "))"
+				].join("");
+			} else {
+				// is block
+				const code = [
+					"Vars.world.tile(" + blockX + ", " + blockY + ").setBlock(Vars.content.block(" + block.id + "), Team.get(" + team.id + "), " + rot + ")"
+				].join("");
+			}
+				Call.sendChatMessage("/js " + code);
 
 		} else {
-			//local
-			Vars.world.tile(blockX, blockY).setNet(block, team, rot);
+			// is local
+			if (block.id < 3 || (block.id > 18 && block.id < 94)) {
+				// is floor
+				Vars.world.tile(blockX, blockY).setFloor(block);
+			} else {
+				// is block
+				Vars.world.tile(blockX, blockY).setNet(block, team, rot);
+			}
 		}
+
 	} else {
+		// error
 		Vars.player.sendMessage("[Block Placer] [scarlet]ERROR: invalid coordinates");
-		Log.errTag("Block Placer", "[scarlet]the block: " + block + " [scarlet]cound't be placed at x: " + blockX + " y: " + blockY);
+		Log.err("[scarlet][Block Placer] the block: " + block + " [scarlet]cound't be placed at x: " + blockX + " y: " + blockY);
 	}
 
 }
@@ -56,46 +72,51 @@ function fill() {
 
 	var timesX = Math.round((endPos.x - startPos.x) / block.size);
 	var timesY = Math.round((endPos.y - startPos.y) / block.size);
-	var error = !(Vars.world.tile(startPos.x, startPos.y) && Vars.world.tile(endPos.x, endPos.y) && (timesX * timesY) < maxLoop);
 
-	if (!error) {
+	if (Vars.world.tile(startPos.x, startPos.y) && Vars.world.tile(endPos.x, endPos.y) && (timesX * timesY) < maxLoop) {
 
 		if (Vars.net.client()) {
-			// remote
-			var code = [
-				"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(block.size / 2)) + "+" + block.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(block.size / 2) + "+" + block.size) + "*j; Vars.world.tile(x, y).setNet(Vars.content.block(" + block.id + "), Team.get(" + team.id + "), " + rot + ")}}"
-			].join("");
-
-			Call.sendChatMessage("/js " + code);
+			// is remote
+			if (block.id < 3 || (block.id > 18 && block.id < 94)) {
+				// is floor
+				var code = [
+					"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(block.size / 2)) + "+" + block.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(block.size / 2) + "+" + block.size) + "*j; Vars.world.tile(x, y).setFloor(Vars.content.block(" + block.id + ")}}"
+				].join("");
+			} else {
+				// is block
+				var code = [
+					"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(block.size / 2)) + "+" + block.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(block.size / 2) + "+" + block.size) + "*j; Vars.world.tile(x, y).setBlock(Vars.content.block(" + block.id + "), Team.get(" + team.id + "), " + rot + ")}}"
+				].join("");
+			}
+				Call.sendChatMessage("/js " + code);
 
 		} else {
-			// local
+			// is local
 			for (var i = 0; i < timesX; i++) {
 				blockX = startPos.x + Math.floor(block.size / 2) + block.size * i;
 				for (var j = 0; j < timesY; j++) {
 					blockY = startPos.y + Math.floor(block.size / 2) + block.size * j;
-					place(); // this is local, won't realy matter if we spam it
+					place(); // spam
 				}
 			}
 		}
+
 	} else {
-		// something is wrong
+		// error
 		if (!Vars.world.tile(startPos.x, startPos.y)) {
-			Vars.player.sendMessage("[Block Placer] [scarlet]ERROR: invalid starting coordinates");
-			Log.errTag("Block Placer", "[scarlet]the block cound't be placed because the starting position is x: " + startPos.x + " y: " + startPos.y);
+			Vars.player.sendMessage("[scarlet][Block Placer] ERROR: invalid starting coordinates");
+			Log.err("[scarlet][Block Placer] the block cound't be placed because the starting position is x: " + startPos.x + " y: " + startPos.y);
 		}
 
 		if (!Vars.world.tile(endPos.x, endPos.y)) {
-			Vars.player.sendMessage("[Block Placer] [scarlet]ERROR: invalid ending coordinates");
-			Log.errTag("Block Placer", "[scarlet]the block cound't be placed because the ending position is x: " + endPos.x + " y: " + endPos.y);
+			Vars.player.sendMessage("[scarlet][Block Placer] ERROR: invalid ending coordinates");
+			Log.err("[scarlet][Block Placer] the block cound't be placed because the ending position is x: " + endPos.x + " y: " + endPos.y);
 		}
 
 		if (timesX * timesY > maxLoop) {
-			// the loop is too big
 			Vars.player.sendMessage("[Block Placer] [scarlet]ERROR: loop is too big")
-			Log.warn("[Block Placer] [scarlet]ERROR: loop is too big, you are trying to loop " + (timesX * timesY) + " times, the max is: " + maxLoop * maxLoop);
+			Log.warn("[scarlet][Block Placer] the loop is too big, you were trying to loop " + (timesX * timesY) + " times, the max is: " + maxLoop);
 		}
-
 	}
 }
 
@@ -160,8 +181,6 @@ ui.onLoad(() => {
 	}).get();
 	rotField.validator = text => !isNaN(parseInt(text));
 
-	table.row();
-
 	teamSlider = sliders.slider(0, 255, 1, team, m => {
 		team = Team.get(m);
 		teamField.text = m;
@@ -174,6 +193,8 @@ ui.onLoad(() => {
 		teamSlider.value = parseInt(text);
 	}).get();
 	teamField.validator = text => !isNaN(parseInt(text));
+
+	table.row();
 
 	var posDial = table.table().center().bottom().get();
 
