@@ -4,7 +4,7 @@
   "displayName": "Block Placer",
   "description": "A mindustry mod that places blocks or floors using js, the mod is compatable with [purple]modded []content too",
   "dependencies": [ "ui-lib" ],
-  "version": "iral version",
+  "version": "irtual box",
   "hidden": true,
   "minGameVersion": 105
 }
