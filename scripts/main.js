@@ -24,27 +24,30 @@ function place() {
 
 		if (Vars.net.client()) {
 			// is remote
-			if (block.id < 3 || (block.id > 18 && block.id < 94)) {
+			if (block.id < 2 || (block.id > 18 && block.id < 50 && block.id != 30) || (block.id > 72 && block.id < 94 && block.id != 85)) {
 				// is floor
 				const code = [
-					"Vars.world.tile(" + blockX + ", " + blockY + ").setFloor(Vars.content.block(" + block.id + "))"
+					"Vars.world.tile(" + blockX + ", " + blockY + ").setFloorNet(Vars.content.block(" + block.id + "))"
 				].join("");
+				Call.sendChatMessage("/js " + code);
+				Log.warn(code);
 			} else {
 				// is block
 				const code = [
-					"Vars.world.tile(" + blockX + ", " + blockY + ").setBlock(Vars.content.block(" + block.id + "), Team.get(" + team.id + "), " + rot + ")"
+					"Vars.world.tile(" + blockX + ", " + blockY + ").setNet(Vars.content.block(" + block.id + "), Team.get(" + team.id + "), " + rot + ")"
 				].join("");
-			}
 				Call.sendChatMessage("/js " + code);
+				Log.warn(code)
+			}
 
 		} else {
 			// is local
-			if (block.id < 3 || (block.id > 18 && block.id < 94)) {
+			if (block.id < 2 || (block.id > 18 && block.id < 50 && block.id != 30) || (block.id > 72 && block.id < 94 && block.id != 85)) {
 				// is floor
 				Vars.world.tile(blockX, blockY).setFloor(block);
 			} else {
 				// is block
-				Vars.world.tile(blockX, blockY).setNet(block, team, rot);
+				Vars.world.tile(blockX, blockY).setBlock(block, team, rot);
 			}
 		}
 
@@ -77,18 +80,19 @@ function fill() {
 
 		if (Vars.net.client()) {
 			// is remote
-			if (block.id < 3 || (block.id > 18 && block.id < 94)) {
+			if (block.id < 2 || (block.id > 18 && block.id < 50 && block.id != 30) || (block.id > 72 && block.id < 94 && block.id != 85)) {
 				// is floor
 				var code = [
-					"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(block.size / 2)) + "+" + block.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(block.size / 2) + "+" + block.size) + "*j; Vars.world.tile(x, y).setFloor(Vars.content.block(" + block.id + ")}}"
+					"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(block.size / 2)) + "+" + block.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(block.size / 2) + "+" + block.size) + "*j; Vars.world.tile(x, y).setFloorNet(Vars.content.block(" + block.id + "))}}"
 				].join("");
 			} else {
 				// is block
 				var code = [
-					"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(block.size / 2)) + "+" + block.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(block.size / 2) + "+" + block.size) + "*j; Vars.world.tile(x, y).setBlock(Vars.content.block(" + block.id + "), Team.get(" + team.id + "), " + rot + ")}}"
+					"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(block.size / 2)) + "+" + block.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(block.size / 2) + "+" + block.size) + "*j; Vars.world.tile(x, y).setNet(Vars.content.block(" + block.id + "), Team.get(" + team.id + "), " + rot + ")}}"
 				].join("");
 			}
 				Call.sendChatMessage("/js " + code);
+				Log.warn(code);
 
 		} else {
 			// is local
