@@ -5,7 +5,7 @@ from https://github.com/DeltaNedas/unit-factory
 - base funtionality
 - fill option
 - mods and multiplayer support
+- place blocks as floors
 
 ### TODO
-- place blocks as floor
-- fix bugs that may randomly happend
+- fix bugs
