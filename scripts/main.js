@@ -41,9 +41,9 @@ function placeBlock() {
 function placeFloor() {
 	if (invalidCoords(startPos.x, startPos.y)) return
 
-	// @setFloorUnder, please sync in multiplayer
+	// @setFloorUnder, please sync in multiplayer | spoiler: it doesn't and i had to use setFloorNet()
 	var code = [
-		"Vars.world.tile(" + startPos.x + ", " + startPos.y + ").setFloorUnder(Vars.content.block(" + floor.id + "))"
+		"t=Vars.world.tile(" + startPos.x + ", " + startPos.y + "); t.setFloorNet(Vars.content.block(" + floor.id + "), t.overlay())"
 				].join("");
 
 	if (Vars.net.client()) {
@@ -57,9 +57,9 @@ function placeFloor() {
 function placeOverlay() {
 	if (invalidCoords(startPos.x, startPos.y)) return
 
-	// use setFloorNet if it doesn't sync
+	// pain
 	var code = [
-		"Vars.world.tile(" + startPos.x + ", " + startPos.y + ").setOverlay(Vars.content.block(" + overlay.id + "))"
+		"t=Vars.world.tile(" + startPos.x + ", " + startPos.y + "); t.setFloorNet(t.floor(), Vars.content.block(" + overlay.id + "))"
 				].join("");
 
 	if (Vars.net.client()) {
@@ -119,7 +119,7 @@ function fillFloor() {
 	var timesY = Math.round((endPos.y - startPos.y) / floor.size);
 
 	var code = [
-		"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(floor.size / 2)) + "+" + floor.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(floor.size / 2)) + "+" + floor.size + "*j; Vars.world.tile(x, y).setFloorUnder(Vars.content.block(" + floor.id + "))}}"
+		"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(floor.size / 2)) + "+" + floor.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(floor.size / 2)) + "+" + floor.size + "*j; t=Vars.world.tile(x, y); t.setFloorNet(Vars.content.block(" + floor.id + "), t.overlay())}}"
 				].join("");
 
 	if (Vars.net.client()) {
@@ -149,7 +149,7 @@ function fillOverlay() {
 	var timesY = Math.round((endPos.y - startPos.y) / overlay.size);
 
 	var code = [
-		"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(overlay.size / 2)) + "+" + overlay.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(overlay.size / 2)) + "+" + overlay.size + "*j; Vars.world.tile(x, y).setOverlay(Vars.content.block(" + overlay.id + "))}}"
+		"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(overlay.size / 2)) + "+" + overlay.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(overlay.size / 2)) + "+" + overlay.size + "*j; t=Vars.world.tile(x, y); t.setFloorNet(t.floor(), Vars.content.block(" + overlay.id + "))}}"
 				].join("");
 
 	if (Vars.net.client()) {
