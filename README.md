@@ -1,11 +1,10 @@
 # Block placer
-from https://github.com/DeltaNedas/unit-factory
+idea from		-->	https://github.com/DeltaNedas/unit-factory
 
-### Done
-- base funtionality
-- fill option
-- mods and multiplayer support
-- place blocks as floors
+best place ever	-->	https://mindustrygame.github.io/docs/overview-tree.html
 
-### TODO
-- fix bugs
+### TODO LIST, i don't want a trello for this
+
+- mobile support, since it got lost in the process
+
+only show 1 pane for mobile, and choose automaticly what to place
