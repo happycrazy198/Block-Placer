@@ -1,10 +1,10 @@
 {
-  "name": "blockPlacer",
+  "name": "block-placer",
   "author": "[#3599ff]Light",
-  "displayName": "Block Placer",
-  "description": "A mindustry mod that places blocks or floors using js, the mod is compatable with [purple]modded []content too",
+  "displayName": "[cyan]Block Placer",
+  "description": "Mindustry mod that places [coral]blocks[] into the world, allows [purple]modded[] and [gray]hidden blocks to be placed too.\n\n[yellow] \t []star me on Github!  [gray](please) \t [yellow]",
   "dependencies": [ "ui-lib" ],
-  "version": "irtual box",
+  "version": "6.9",
   "hidden": true,
   "minGameVersion": 105
 }
