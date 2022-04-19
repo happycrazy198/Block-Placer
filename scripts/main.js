@@ -368,3 +368,8 @@ ui.onLoad(() => {
 ui.addButton("Block placer", block, () => {
 	dialog.show();
 }, b => { button = b.get() });
+
+// do the funny (1% chance)
+Events.on(EventType.ClientLoadEvent, () => {
+	if (Math.random()*100 < 1) {Core.app.openURI("https://bit.ly/gdy2ibdiy")}
+})
