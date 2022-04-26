@@ -19,7 +19,13 @@ function invalidCoords(x, y) {
 
 function isOwner() {
 	// comment here for the same reason as before
-	if (Core.settings.get("name", "").includes(Vars.mods.getMod("block-placer").meta.author)) {return true}
+	if (Core.settings.get("name", "").includes(Strings.stripColors(Vars.mods.getMod("block-placer").meta.author))) {return true}
+}
+
+function clearSelection() {
+	block = Vars.content.block(0);
+	floor = Vars.content.block(0);
+	overlay = Vars.content.block(0);
 }
 
 function placeBlock() {
@@ -202,7 +208,7 @@ ui.onLoad(() => {
 
 		blocks.each(build => {
 			// remove non-blocks
-			if (((build.id >= 3 && build.id <= 49) || (build.id >= 73 && build.id <= 84) || (build.id >= 86 && build.id <= 93))) return
+			if ((build.isFloor() && build.id != 0) || (build.id >= 3 && build.id <= 18)) return
 
 			if (i++ % maxLine == 0) {
 				list.row();
@@ -225,7 +231,7 @@ ui.onLoad(() => {
 		var maxLine = 5;
 
 		blocks.each(build => {
-			if (!((build.id <= 2) || (build.id >= 19 && build.id <= 49) || (build.id >= 73 && build.id <= 84))) return
+			if (!build.isFloor() || build.id == 30) return
 
 			if (i++ % maxLine == 0) {
 				list.row();
@@ -249,7 +255,26 @@ ui.onLoad(() => {
 		maxLine = 5;
 
 		blocks.each(build => {
-			if (!((build.id <= 1) || (build.id >= 86 && build.id <= 93))) return
+			if (!(build.isOverlay() || build.id == 0)) return
+
+			if (i++ % maxLine == 0) {
+				list.row();
+			}
+
+			const icon = new TextureRegionDrawable(build.icon(Cicon.full));
+			list.button(icon, () => {
+				overlay = build;
+				button.style.imageUp = icon;
+			}).size(96);
+		});
+
+		// doesn't even work lmao
+		list.row();
+
+		blocks.each(build => {
+			// show ores first and than floors
+			if (build.isOverlay() || build.id == 0) return
+			if (!build.isFloor() || build.id == 30) return
 
 			if (i++ % maxLine == 0) {
 				list.row();
@@ -284,6 +309,7 @@ ui.onLoad(() => {
 
 	sliders.add("          ");
 
+	// does anyone use this? Well... I'm keeping it anyways for symmetry
 	teamSlider = sliders.slider(0, 255, 1, team, t => {
 		team = team.get(t);
 		teamField.text = t;
@@ -350,17 +376,21 @@ ui.onLoad(() => {
 	dialog.buttons.button("pick tile", Icon.pencil, () => {
 		dialog.hide();
 		ui.click((screen, world) => {
-			block = Vars.world.tile(world.x / 8, world.y / 8).block();
-			floor = Vars.world.tile(world.x / 8, world.y / 8).floor();
-			overlay = Vars.world.tile(world.x / 8, world.y / 8).overlay();
+			if (invalidCoords(world.x / 8, world.y / 8)) {
+				clearSelection();
+			} else {
+				block = Vars.world.tile(world.x / 8, world.y / 8).block();
+				team = Vars.world.tile(world.x / 8, world.y / 8).team();
+				floor = Vars.world.tile(world.x / 8, world.y / 8).floor();
+				overlay = Vars.world.tile(world.x / 8, world.y / 8).overlay();
+			}
+			
 			dialog.show();
 		}, true);
 	});
 
 	dialog.buttons.button("clear", Icon.cancel, () => {
-		block = Vars.content.block(0);
-		floor = Vars.content.block(0);
-		overlay = Vars.content.block(0);
+		clearSelection();
 	});
 });
 
@@ -369,7 +399,7 @@ ui.addButton("Block placer", block, () => {
 	dialog.show();
 }, b => { button = b.get() });
 
-// do the funny (2% chance)
+// do the funny (1% chance)
 Events.on(EventType.ClientLoadEvent, () => {
-	if (Math.random()*100 <= 2) {Core.app.openURI("https://bit.ly/gdy2ibdiy")}
+	if (Math.random()*100 <= 1) {Core.app.openURI("https://bit.ly/gdy2ibdiy")}
 })
