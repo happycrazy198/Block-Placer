@@ -4,7 +4,7 @@
   "displayName": "[cyan]Block Placer",
   "description": "Mindustry mod that places [coral]blocks[] into the world, allows [purple]modded[] and [gray]hidden blocks to be placed too.\n\n[yellow] \t []star me on Github!  [gray](please) \t [yellow]",
   "dependencies": [ "ui-lib" ],
-  "version": "6.9",
+  "version": "42.0",
   "hidden": true,
   "minGameVersion": 105
 }
