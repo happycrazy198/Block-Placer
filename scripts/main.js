@@ -214,7 +214,7 @@ ui.onLoad(() => {
 				list.row();
 			}
 
-			const icon = new TextureRegionDrawable(build.icon(Cicon.full));
+			const icon = new TextureRegionDrawable(build.uiIcon);
 			list.button(icon, () => {
 				block = build;
 				button.style.imageUp = icon;
@@ -237,7 +237,7 @@ ui.onLoad(() => {
 				list.row();
 			}
 
-			const icon = new TextureRegionDrawable(build.icon(Cicon.full));
+			const icon = new TextureRegionDrawable(build.uiIcon);
 			list.button(icon, () => {
 				floor = build;
 				button.style.imageUp = icon;
@@ -261,7 +261,7 @@ ui.onLoad(() => {
 				list.row();
 			}
 
-			const icon = new TextureRegionDrawable(build.icon(Cicon.full));
+			const icon = new TextureRegionDrawable(build.uiIcon);
 			list.button(icon, () => {
 				overlay = build;
 				button.style.imageUp = icon;
@@ -280,7 +280,7 @@ ui.onLoad(() => {
 				list.row();
 			}
 
-			const icon = new TextureRegionDrawable(build.icon(Cicon.full));
+			const icon = new TextureRegionDrawable(build.uiIcon);
 			list.button(icon, () => {
 				overlay = build;
 				button.style.imageUp = icon;

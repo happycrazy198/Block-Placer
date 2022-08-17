@@ -1,10 +1,10 @@
 {
   "name": "block-placer",
   "author": "[#3599ff]Light",
-  "displayName": "[cyan]Block Placer",
-  "description": "Mindustry mod that places [coral]blocks[] into the world, allows [purple]modded[] and [gray]hidden blocks to be placed too.\n\n[yellow] \t []star me on Github!  [gray](please) \t [yellow]",
+  "displayName": "Block Placer",
+  "description": "Mindustry mod that places all kinds of blocks (even modded and hidden) into the world.\n\n \t star me on Github!  (please) \t ",
   "dependencies": [ "ui-lib" ],
   "version": "42.0",
   "hidden": true,
-  "minGameVersion": 105
+  "minGameVersion": 136
 }
