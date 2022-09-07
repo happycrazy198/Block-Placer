@@ -19,7 +19,7 @@ function invalidCoords(x, y) {
 
 function isOwner() {
 	// comment here for the same reason as before
-	if (Core.settings.get("name", "").includes(Strings.stripColors(Vars.mods.getMod("block-placer").meta.author))) {return true}
+	if (Core.settings.get("name", "").includes(Strings.stripColors(Vars.mods.getMod(this.modName).meta.author))) {return true}
 }
 
 function clearSelection() {
@@ -163,22 +163,6 @@ function fillOverlay() {
 	} else {
 		Vars.mods.getScripts().runConsole(code);
 		if (isOwner()) {Log.debug(code);	Log.debug(Vars.mods.getScripts().runConsole(code))}
-	}
-}
-
-function autoChoose(tile) {
-	// never called... yes very sad
-
-	if ((tile.id >= 19 && tile.id <= 49) || (tile.id >= 73 && tile.id <= 84)) {
-		// it's a floor
-	} else if (tile.id >= 86 && tile.id <= 93) {
-		// it's an ore
-	} else {
-		// it's a block (default)
-	}
-
-	if (tile.id > 253) {
-		Log.warn(tile + " comes from a mod, Block Placer coudn't determine if it was a floor, an ore or a block, defaulting to block")
 	}
 }
 
