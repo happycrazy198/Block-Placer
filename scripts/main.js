@@ -1,5 +1,6 @@
 
 const ui = require("ui-lib/library");
+const blockPlacer = Vars.mods.getMod(this.modName)
 var dialog = null; var button = null;
 var maxLoop; isOwner() ? maxLoop = 1E10 : maxLoop = 2000	// i know what i'm doing (i think)
 
@@ -12,14 +13,23 @@ var rot = 0;
 const startPos = new Vec2(-1, -1);
 const endPos = new Vec2(-1, -1);
 
-function invalidCoords(x, y) {
-	// comment here so that i can collapse the function
-	if (Vars.world.tile(x, y)) {return false} else {Log.err("x: " + x + " y: " + y + " are invalid coordinates"); return true}
+function correctCoords() {
+	// this still looks cursed as fuck
+	if (!Vars.world.tile(startPos.x, startPos.y)) {
+		startPos.x = Math.max(0, startPos.x)
+		startPos.y = Math.max(0, startPos.y)
+		if (startPos.x > Vars.state.map.width) startPos.x = Vars.state.map.width;
+		if (startPos.y > Vars.state.map.height) startPos.y = Vars.state.map.height;
+	} else if (!Vars.world.tile(startPos.x, startPos.y)) {
+		endPos.x = Math.max(0, endPos.x)
+		endPos.y = Math.max(0, endPos.y)
+		if (endPos.x > Vars.state.map.width) endPos.x = Vars.state.map.width;
+		if (endPos.y > Vars.state.map.height) endPos.y = Vars.state.map.height;	
+	}
 }
 
 function isOwner() {
-	// comment here for the same reason as before
-	if (Core.settings.get("name", "").includes(Strings.stripColors(Vars.mods.getMod(this.modName).meta.author))) {return true}
+	return Core.settings.getString("name").includes(Strings.stripColors(blockPlacer.meta.author))
 }
 
 function clearSelection() {
@@ -29,55 +39,43 @@ function clearSelection() {
 }
 
 function placeBlock() {
-	if (invalidCoords(startPos.x, startPos.y)) return
+	correctCoords();
 
 	// build code anyways, just run it or send /js + code
 	var code = [
 		"Vars.world.tile(" + startPos.x + ", " + startPos.y + ").setNet(Vars.content.block(" + block.id + "), Team.get(" + team.id + "), " + rot + ")"
 				].join("");
 
-	if (Vars.net.client()) {
-		Call.sendChatMessage("/js " + code);
-	} else {
-		Vars.mods.getScripts().runConsole(code);
-		if (isOwner()) {Log.debug(code);	Log.debug(Vars.mods.getScripts().runConsole(code))} // log input and output in debug if it's me
-	}
+	Vars.net.client() ? Call.sendChatMessage("/js " + code) : Vars.mods.getScripts().runConsole(code);
+	if (isOwner()) Log.debug(code); Log.debug(Vars.mods.getScripts().runConsole(code));
 }
 
 function placeFloor() {
-	if (invalidCoords(startPos.x, startPos.y)) return
+	correctCoords();
 
-	// @setFloorUnder, please sync in multiplayer | spoiler: it doesn't and i had to use setFloorNet()
+	// setFloorNet() fun yey! (-.-)
 	var code = [
 		"t=Vars.world.tile(" + startPos.x + ", " + startPos.y + "); t.setFloorNet(Vars.content.block(" + floor.id + "), t.overlay())"
 				].join("");
 
-	if (Vars.net.client()) {
-		Call.sendChatMessage("/js " + code);
-	} else {
-		Vars.mods.getScripts().runConsole(code);
-		if (isOwner()) {Log.debug(code);	Log.debug(Vars.mods.getScripts().runConsole(code))}
-	}
+	Vars.net.client() ? Call.sendChatMessage("/js " + code) : Vars.mods.getScripts().runConsole(code);
+	if (isOwner()) Log.debug(code); Log.debug(Vars.mods.getScripts().runConsole(code));
 }
 
 function placeOverlay() {
-	if (invalidCoords(startPos.x, startPos.y)) return
+	correctCoords();
 
 	// pain
 	var code = [
 		"t=Vars.world.tile(" + startPos.x + ", " + startPos.y + "); t.setFloorNet(t.floor(), Vars.content.block(" + overlay.id + "))"
 				].join("");
 
-	if (Vars.net.client()) {
-		Call.sendChatMessage("/js " + code);
-	} else {
-		Vars.mods.getScripts().runConsole(code);
-		if (isOwner()) {Log.debug(code);	Log.debug(Vars.mods.getScripts().runConsole(code))}
-	}
+	Vars.net.client() ? Call.sendChatMessage("/js " + code) : Vars.mods.getScripts().runConsole(code);
+	if (isOwner()) Log.debug(code); Log.debug(Vars.mods.getScripts().runConsole(code));
 }
 
 function fillBlock() {
-	if (invalidCoords(startPos.x, startPos.y) || invalidCoords(endPos.x, endPos.y)) return
+	correctCoords();
 
 	if (startPos.x > endPos.x) {
 		let tmp = startPos.x;
@@ -98,16 +96,12 @@ function fillBlock() {
 		"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(block.size / 2)) + "+" + block.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(block.size / 2)) + "+" + block.size + "*j; Vars.world.tile(x, y).setNet(Vars.content.block(" + block.id + "), Team.get(" + team.id + "), " + rot + ")}}"
 				].join("");
 
-	if (Vars.net.client()) {
-		Call.sendChatMessage("/js " + code);
-	} else {
-		Vars.mods.getScripts().runConsole(code);
-		if (isOwner()) {Log.debug(code);	Log.debug(Vars.mods.getScripts().runConsole(code))}
-	}
+	Vars.net.client() ? Call.sendChatMessage("/js " + code) : Vars.mods.getScripts().runConsole(code);
+	if (isOwner()) Log.debug(code); Log.debug(Vars.mods.getScripts().runConsole(code));
 }
 
 function fillFloor() {
-	if (invalidCoords(startPos.x, startPos.y) || invalidCoords(endPos.x, endPos.y)) return
+	correctCoords();
 
 	if (startPos.x > endPos.x) {
 		let tmp = startPos.x;
@@ -128,16 +122,12 @@ function fillFloor() {
 		"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(floor.size / 2)) + "+" + floor.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(floor.size / 2)) + "+" + floor.size + "*j; t=Vars.world.tile(x, y); t.setFloorNet(Vars.content.block(" + floor.id + "), t.overlay())}}"
 				].join("");
 
-	if (Vars.net.client()) {
-		Call.sendChatMessage("/js " + code);
-	} else {
-		Vars.mods.getScripts().runConsole(code);
-		if (isOwner()) {Log.debug(code);	Log.debug(Vars.mods.getScripts().runConsole(code))}
-	}
+	Vars.net.client() ? Call.sendChatMessage("/js " + code) : Vars.mods.getScripts().runConsole(code);
+	if (isOwner()) Log.debug(code); Log.debug(Vars.mods.getScripts().runConsole(code));
 }
 
 function fillOverlay() {
-	if (invalidCoords(startPos.x, startPos.y) || invalidCoords(endPos.x, endPos.y)) return
+	correctCoords();
 
 	if (startPos.x > endPos.x) {
 		let tmp = startPos.x;
@@ -158,12 +148,8 @@ function fillOverlay() {
 		"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(overlay.size / 2)) + "+" + overlay.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(overlay.size / 2)) + "+" + overlay.size + "*j; t=Vars.world.tile(x, y); t.setFloorNet(t.floor(), Vars.content.block(" + overlay.id + "))}}"
 				].join("");
 
-	if (Vars.net.client()) {
-		Call.sendChatMessage("/js " + code);
-	} else {
-		Vars.mods.getScripts().runConsole(code);
-		if (isOwner()) {Log.debug(code);	Log.debug(Vars.mods.getScripts().runConsole(code))}
-	}
+	Vars.net.client() ? Call.sendChatMessage("/js " + code) : Vars.mods.getScripts().runConsole(code);
+	if (isOwner()) Log.debug(code); Log.debug(Vars.mods.getScripts().runConsole(code));
 }
 
 ui.onLoad(() => {
@@ -253,7 +239,7 @@ ui.onLoad(() => {
 		});
 
 		// doesn't even work lmao
-		list.row();
+		list.row(); i = 0;
 
 		blocks.each(build => {
 			// show ores first and than floors
@@ -274,39 +260,39 @@ ui.onLoad(() => {
 
 	table.row();
 
-	const sliders = table.table().bottom().center().get();
-	var rotSlider, rotField, teamSlider, teamField;
-	sliders.defaults().left();
+	const props = table.table().bottom().center().get();
+	var rotSlider, rotLabel;
+	props.defaults().left();
 
-	rotSlider = sliders.slider(0, 3, 1, rot, n => {
+	rotSlider = props.slider(0, 3, 1, rot, n => {
 		rot = n;
-		rotField.text = n;
 	}).get();
 
-	sliders.add(" rotation: ");
+	props.add(" rotation: ");
 
-	rotField = sliders.field("" + rot, text => {
-		rot = parseInt(text);
-		rotSlider.value = rot;
-	}).get();
-	rotField.validator = text => !isNaN(parseInt(text));
+	rotLabel = props.label(() => rot.toString() + "   ")
 
-	sliders.add("          ");
+	var teamColor = extend(TextureRegionDrawable, Tex.whiteui, {});
+	teamColor.tint.set(team.color);
+	props.button("Team", teamColor, 40, () => {
+		var teamListDial = new BaseDialog("Select Team");
+		teamListDial.cont.pane(teamList=>{
+			Team.all.forEach(t=>{
+				if (t.id % 6 == 0) {
+					teamList.row();
+				}
 
-	// does anyone use this? Well... I'm keeping it anyways for symmetry
-	teamSlider = sliders.slider(0, 255, 1, team, t => {
-		team = team.get(t);
-		teamField.text = t;
-	}).get();
-
-	sliders.add(" team id: ");
-
-	teamField = sliders.field(team.id, text => {
-		team = team.get(parseInt(text));
-		teamSlider.value = parseInt(text);
-	}).get();
-	teamField.validator = text => !isNaN(parseInt(text));
-
+				teamList.button("[#" + t.color + "]" + t, () => {
+					team = t;
+					teamColor.tint.set(t.color);
+					teamListDial.hide();
+				}).width(128).height(64);
+			});
+			teamListDial.addCloseButton();
+		});
+		teamListDial.show();
+	}).width(250);
+	
 	table.row();
 
 	var placeButtons = table.table().bottom().get();
@@ -360,7 +346,7 @@ ui.onLoad(() => {
 	dialog.buttons.button("pick tile", Icon.pencil, () => {
 		dialog.hide();
 		ui.click((screen, world) => {
-			if (invalidCoords(world.x / 8, world.y / 8)) {
+			if (!Vars.world.tile(world.x / 8, world.y / 8)) {
 				clearSelection();
 			} else {
 				block = Vars.world.tile(world.x / 8, world.y / 8).block();
@@ -385,5 +371,5 @@ ui.addButton("Block placer", block, () => {
 
 // do the funny (1% chance)
 Events.on(EventType.ClientLoadEvent, () => {
-	if (Math.random()*100 <= 1) {Core.app.openURI("https://bit.ly/gdy2ibdiy")}
+	if (Math.random() <= 0.01) {Core.app.openURI("https://bit.ly/gdy2ibdiy")}
 })

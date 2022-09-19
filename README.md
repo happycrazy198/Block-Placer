@@ -1,10 +1,9 @@
 # Block placer
-idea from		-->	https://github.com/DeltaNedas/unit-factory
 
-best place ever	-->	https://mindustrygame.github.io/docs/overview-tree.html
+idea from	-->	https://github.com/DeltaNedas/unit-factory
 
-### TODO LIST, i don't want a trello for this
+good docs	-->	https://mindustrygame.github.io/docs/overview-tree.html
 
-- mobile support, since it got lost in the process
+### TODO LIST
 
-only show 1 pane for mobile, and choose automaticly what to place
+- smaller ui for mobile

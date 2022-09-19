@@ -1,10 +1,10 @@
 {
   "name": "block-placer",
-  "author": "[#3599ff]Light",
   "displayName": "Block Placer",
-  "description": "Mindustry mod that places all kinds of blocks (even modded and hidden) into the world.\n\n \t star me on Github!  (please) \t ",
-  "dependencies": [ "ui-lib" ],
-  "version": "42.0",
-  "hidden": true,
-  "minGameVersion": 136
+  "author": "[#3599ff]Light",
+  "description": "Mindustry mod that places any kind of blocks (even modded and hidden) into the world.\n\n Star me on Github!   (please) ",
+  "dependencies": [ "ui-lib", "block-placer" ],
+  "version": "eicular manslaughter 1",
+  "minGameVersion": 136,
+  "hidden": true
 }
