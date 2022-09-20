@@ -2,29 +2,38 @@
 const ui = require("ui-lib/library");
 const blockPlacer = Vars.mods.getMod(this.modName)
 var dialog = null; var button = null;
-var maxLoop; isOwner() ? maxLoop = 1E10 : maxLoop = 2000	// i know what i'm doing (i think)
 
 var block = Blocks.coreNucleus;
 var floor = Vars.content.block(0);
 var overlay = Vars.content.block(0);
-var team = Vars.state.rules.defaultTeam;
+var team = Team.sharded;
 var rot = 0;
 
 const startPos = new Vec2(-1, -1);
 const endPos = new Vec2(-1, -1);
 
 function correctCoords() {
-	// this still looks cursed as fuck
+	// still a lot of if statements but at least better than before
 	if (!Vars.world.tile(startPos.x, startPos.y)) {
-		startPos.x = Math.max(0, startPos.x)
-		startPos.y = Math.max(0, startPos.y)
-		if (startPos.x > Vars.state.map.width) startPos.x = Vars.state.map.width;
-		if (startPos.y > Vars.state.map.height) startPos.y = Vars.state.map.height;
-	} else if (!Vars.world.tile(startPos.x, startPos.y)) {
-		endPos.x = Math.max(0, endPos.x)
-		endPos.y = Math.max(0, endPos.y)
-		if (endPos.x > Vars.state.map.width) endPos.x = Vars.state.map.width;
-		if (endPos.y > Vars.state.map.height) endPos.y = Vars.state.map.height;	
+		startPos.x = Mathf.clamp(startPos.x, 0, Vars.state.map.width);
+    	startPos.y = Mathf.clamp(startPos.y, 0, Vars.state.map.height);
+	}
+
+	if (!Vars.world.tile(endPos.x, endPos.y)) {
+    	endPos.x = Mathf.clamp(endPos.x, 0, Vars.state.map.width);
+    	endPos.y = Mathf.clamp(endPos.y, 0, Vars.state.map.height);
+    }
+
+    if (startPos.x > endPos.x) {
+		let tmp = startPos.x;
+		startPos.x = endPos.x;
+		endPos.x = tmp;
+	}
+
+	if (startPos.y > endPos.y) {
+		let tmp = startPos.y;
+		startPos.y = endPos.y;
+		endPos.y = tmp
 	}
 }
 
@@ -43,7 +52,7 @@ function placeBlock() {
 
 	// build code anyways, just run it or send /js + code
 	var code = [
-		"Vars.world.tile(" + startPos.x + ", " + startPos.y + ").setNet(Vars.content.block(" + block.id + "), Team.get(" + team.id + "), " + rot + ")"
+		"Vars.world.tile(" + startPos.x + "," + startPos.y + ").setNet(Vars.content.block(" + block.id + "),Team.get(" + team.id + ")," + rot + ")"
 				].join("");
 
 	Vars.net.client() ? Call.sendChatMessage("/js " + code) : Vars.mods.getScripts().runConsole(code);
@@ -55,7 +64,7 @@ function placeFloor() {
 
 	// setFloorNet() fun yey! (-.-)
 	var code = [
-		"t=Vars.world.tile(" + startPos.x + ", " + startPos.y + "); t.setFloorNet(Vars.content.block(" + floor.id + "), t.overlay())"
+		"t=Vars.world.tile(" + startPos.x + "," + startPos.y + ");t.setFloorNet(Vars.content.block(" + floor.id + "),t.overlay())"
 				].join("");
 
 	Vars.net.client() ? Call.sendChatMessage("/js " + code) : Vars.mods.getScripts().runConsole(code);
@@ -65,9 +74,8 @@ function placeFloor() {
 function placeOverlay() {
 	correctCoords();
 
-	// pain
 	var code = [
-		"t=Vars.world.tile(" + startPos.x + ", " + startPos.y + "); t.setFloorNet(t.floor(), Vars.content.block(" + overlay.id + "))"
+		"t=Vars.world.tile(" + startPos.x + ", " + startPos.y + ");t.setFloorNet(t.floor(),Vars.content.block(" + overlay.id + "))"
 				].join("");
 
 	Vars.net.client() ? Call.sendChatMessage("/js " + code) : Vars.mods.getScripts().runConsole(code);
@@ -77,23 +85,11 @@ function placeOverlay() {
 function fillBlock() {
 	correctCoords();
 
-	if (startPos.x > endPos.x) {
-		let tmp = startPos.x;
-		startPos.x = endPos.x;
-		endPos.x = tmp;
-	}
-
-	if (startPos.y > endPos.y) {
-		let tmp = startPos.y;
-		startPos.y = endPos.y;
-		endPos.y = tmp
-	}
-
 	var timesX = Math.round((endPos.x - startPos.x) / block.size);
 	var timesY = Math.round((endPos.y - startPos.y) / block.size);
 
 	var code = [
-		"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(block.size / 2)) + "+" + block.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(block.size / 2)) + "+" + block.size + "*j; Vars.world.tile(x, y).setNet(Vars.content.block(" + block.id + "), Team.get(" + team.id + "), " + rot + ")}}"
+		"for(i=0;i<" + timesX + ";i++){x=" + (startPos.x + Math.floor(block.size / 2)) + "+" + block.size + "*i;for(j=0;j<" + timesY + ";j++){y=" + (startPos.y + Math.floor(block.size / 2)) + "+" + block.size + "*j;Vars.world.tile(x,y).setNet(Vars.content.block(" + block.id + "),Team.get(" + team.id + ")," + rot + ")}}"
 				].join("");
 
 	Vars.net.client() ? Call.sendChatMessage("/js " + code) : Vars.mods.getScripts().runConsole(code);
@@ -103,23 +99,11 @@ function fillBlock() {
 function fillFloor() {
 	correctCoords();
 
-	if (startPos.x > endPos.x) {
-		let tmp = startPos.x;
-		startPos.x = endPos.x;
-		endPos.x = tmp;
-	}
-
-	if (startPos.y > endPos.y) {
-		let tmp = startPos.y;
-		startPos.y = endPos.y;
-		endPos.y = tmp
-	}
-
 	var timesX = Math.round((endPos.x - startPos.x) / floor.size);
 	var timesY = Math.round((endPos.y - startPos.y) / floor.size);
 
 	var code = [
-		"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(floor.size / 2)) + "+" + floor.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(floor.size / 2)) + "+" + floor.size + "*j; t=Vars.world.tile(x, y); t.setFloorNet(Vars.content.block(" + floor.id + "), t.overlay())}}"
+		"for(i=0;i<" + timesX + ";i++){x=" + (startPos.x + Math.floor(floor.size / 2)) + "+" + floor.size + "*i;for(j=0;j<" + timesY + ";j++){y=" + (startPos.y + Math.floor(floor.size / 2)) + "+" + floor.size + "*j;t=Vars.world.tile(x,y);t.setFloorNet(Vars.content.block(" + floor.id + "),t.overlay())}}"
 				].join("");
 
 	Vars.net.client() ? Call.sendChatMessage("/js " + code) : Vars.mods.getScripts().runConsole(code);
@@ -129,23 +113,51 @@ function fillFloor() {
 function fillOverlay() {
 	correctCoords();
 
-	if (startPos.x > endPos.x) {
-		let tmp = startPos.x;
-		startPos.x = endPos.x;
-		endPos.x = tmp;
-	}
-
-	if (startPos.y > endPos.y) {
-		let tmp = startPos.y;
-		startPos.y = endPos.y;
-		endPos.y = tmp
-	}
-
 	var timesX = Math.round((endPos.x - startPos.x) / overlay.size);
 	var timesY = Math.round((endPos.y - startPos.y) / overlay.size);
 
 	var code = [
-		"for(i=0; i<" + timesX + "; i++) {x=" + (startPos.x + Math.floor(overlay.size / 2)) + "+" + overlay.size + "*i; for(j=0; j<" + timesY + "; j++) {y=" + (startPos.y + Math.floor(overlay.size / 2)) + "+" + overlay.size + "*j; t=Vars.world.tile(x, y); t.setFloorNet(t.floor(), Vars.content.block(" + overlay.id + "))}}"
+		"for(i=0;i<" + timesX + ";i++){x=" + (startPos.x + Math.floor(overlay.size / 2)) + "+" + overlay.size + "*i;for(j=0;j<" + timesY + ";j++){y=" + (startPos.y + Math.floor(overlay.size / 2)) + "+" + overlay.size + "*j;t=Vars.world.tile(x,y);t.setFloorNet(t.floor(),Vars.content.block(" + overlay.id + "))}}"
+				].join("");
+
+	Vars.net.client() ? Call.sendChatMessage("/js " + code) : Vars.mods.getScripts().runConsole(code);
+	if (isOwner()) Log.debug(code); Log.debug(Vars.mods.getScripts().runConsole(code));
+}
+
+function fillCircleBlock() {
+	correctCoords();
+
+	if (block.size > 2) {
+		Call.sendMessage("[scarlet][E][] [[" + blockPlacer.meta.name + "] unsupported block size for circle fill (max=2)")
+		Log.errTag(blockPlacer.meta.name,"unsupported block size for circle fill (max=2) (current=" + block.size + ")")
+		return
+	}
+
+	var code = [
+		"Geometry.circle(" + Math.floor(startPos.x + ((endPos.x - startPos.x) / 2)) + "," + Math.floor(startPos.y + ((endPos.y - startPos.y) / 2)) + "," + Math.ceil((endPos.y - startPos.y) / 2) + ",(x,y)=>{" + (block.size == 2 ? "if(x%2&&y%2)" : "") + "Vars.world.tile(x,y).setNet(Vars.content.block(" + block.id + "),Team.get(" + team.id + ")," + rot + ")})"
+				].join("");
+
+	Vars.net.client() ? Call.sendChatMessage("/js " + code) : Vars.mods.getScripts().runConsole(code);
+	if (isOwner()) Log.debug(code); Log.debug(Vars.mods.getScripts().runConsole(code));
+}
+
+function fillCircleFloor() {
+	correctCoords();
+
+	// there are no 2x2+ floors
+	var code = [
+		"Geometry.circle(" + Math.floor(startPos.x + ((endPos.x - startPos.x) / 2)) + "," + Math.floor(startPos.y + ((endPos.y - startPos.y) / 2)) + "," + Math.ceil((endPos.y - startPos.y) / 2) + ",(x,y)=>{t=Vars.world.tile(x,y);t.setFloorNet(Vars.content.block(" + floor.id + "),t.overlay())})"
+				].join("");
+
+	Vars.net.client() ? Call.sendChatMessage("/js " + code) : Vars.mods.getScripts().runConsole(code);
+	if (isOwner()) Log.debug(code); Log.debug(Vars.mods.getScripts().runConsole(code));
+}
+
+function fillCircleOverlay() {
+	correctCoords();
+
+	var code = [
+		"Geometry.circle(" + Math.floor(startPos.x + ((endPos.x - startPos.x) / 2)) + "," + Math.floor(startPos.y + ((endPos.y - startPos.y) / 2)) + "," + Math.ceil((endPos.y - startPos.y) / 2) + ",(x,y)=>{t=Vars.world.tile(x,y);t.setFloorNet(t.floor(),Vars.content.block(" + overlay.id + "))})"
 				].join("");
 
 	Vars.net.client() ? Call.sendChatMessage("/js " + code) : Vars.mods.getScripts().runConsole(code);
@@ -155,13 +167,6 @@ function fillOverlay() {
 ui.onLoad(() => {
 	dialog = new BaseDialog("Place a block");
 	const table = dialog.cont;
-
-	let labels = table.table().top().center().get();
-	labels.label(() => block.localizedName);
-	labels.row();
-	labels.label(() => floor.localizedName);
-	labels.row();
-	labels.label(() => overlay.localizedName);
 
 	table.row();
 
@@ -260,21 +265,57 @@ ui.onLoad(() => {
 
 	table.row();
 
+	var placeButtons = table.table().bottom().center().get();
+
+	placeButtons.right().button("Fill zone ores", Icon.fill, fillOverlay)
+		.disabled(() => Vars.state.isCampaign()).width(250);
+	
+	placeButtons.right().button("Fill circle ores", Icon.infoCircle, fillCircleOverlay)
+		.disabled(() => Vars.state.isCampaign()).width(250);
+
+	placeButtons.right().button("Place ore", Icon.terrain, placeOverlay)
+		.disabled(() => Vars.state.isCampaign()).width(250);
+	placeButtons.row();
+
+	placeButtons.right().button("Fill zone floors", Icon.fill, fillFloor)
+		.disabled(() => Vars.state.isCampaign()).width(250);
+	
+	placeButtons.right().button("Fill circle floors", Icon.infoCircle, fillCircleFloor)
+		.disabled(() => Vars.state.isCampaign()).width(250);
+	
+	placeButtons.right().button("Place ore", Icon.terrain, placeFloor)
+		.disabled(() => Vars.state.isCampaign()).width(250);
+
+	placeButtons.row();
+	
+	placeButtons.right().button("Fill zone blocks", Icon.fill, fillBlock)
+		.disabled(() => Vars.state.isCampaign()).width(250);
+
+	placeButtons.right().button("Fill circle blocks", Icon.infoCircle, fillCircleBlock)
+		.disabled(() => Vars.state.isCampaign()).width(250);
+
+	placeButtons.right().button("Place block", Icon.terrain, placeBlock)
+		.disabled(() => Vars.state.isCampaign()).width(250);
+	
+	table.row();
+
+	var labels = table.table().bottom().center().get();
+
+	// ui skill issue
+	labels.label(() => {return "[coral]Block: []" + block.localizedName + " " + block.emoji()});
+	labels.add("          ");
+	labels.label(() => {return "[coral]Floor: []" + floor.localizedName + " " + floor.emoji()});
+	labels.add("          ");
+	labels.label(() => {return "[coral]Ore: []" + overlay.localizedName + " " + overlay.emoji()});
+
+	table.row()
+
 	const props = table.table().bottom().center().get();
-	var rotSlider, rotLabel;
-	props.defaults().left();
-
-	rotSlider = props.slider(0, 3, 1, rot, n => {
-		rot = n;
-	}).get();
-
-	props.add(" rotation: ");
-
-	rotLabel = props.label(() => rot.toString() + "   ")
-
 	var teamColor = extend(TextureRegionDrawable, Tex.whiteui, {});
+	var rotSlider, rotLabel, startPosDial, endPosDial;
+
 	teamColor.tint.set(team.color);
-	props.button("Team", teamColor, 40, () => {
+	props.button("Select Team", teamColor, 40, () => {
 		var teamListDial = new BaseDialog("Select Team");
 		teamListDial.cont.pane(teamList=>{
 			Team.all.forEach(t=>{
@@ -291,38 +332,11 @@ ui.onLoad(() => {
 			teamListDial.addCloseButton();
 		});
 		teamListDial.show();
-	}).width(250);
-	
-	table.row();
+	}).width(250).height(50);
 
-	var placeButtons = table.table().bottom().get();
-	
-	placeButtons.left().button("fill blocks", Icon.fill, fillBlock)
-		.disabled(() => Vars.state.isCampaign()).width(250);
-	
-	placeButtons.center().button("fill floors", Icon.fill, fillFloor)
-		.disabled(() => Vars.state.isCampaign()).width(250);
-	
-	placeButtons.right().button("fill ores", Icon.fill, fillOverlay)
-		.disabled(() => Vars.state.isCampaign()).width(250);
-	
-	placeButtons.row();
+	props.add("   ");
 
-	placeButtons.left().button("place block", Icon.terrain, placeBlock)
-		.disabled(() => Vars.state.isCampaign()).width(250);
-
-	placeButtons.center().button("place floor", Icon.terrain, placeFloor)
-		.disabled(() => Vars.state.isCampaign()).width(250);
-
-	placeButtons.right().button("place ore", Icon.terrain, placeOverlay)
-		.disabled(() => Vars.state.isCampaign()).width(250);
-	
-	table.row();
-
-	var posDial = table.table().center().bottom().get();
-
-	var startPosDial;
-	startPosDial = posDial.button("Set start position", () => {
+	startPosDial = props.button("Set start position", () => {
 		dialog.hide();
 		ui.click((screen, world) => {
 			startPos.set(Math.floor(world.x / 8), Math.floor(world.y / 8));
@@ -331,8 +345,7 @@ ui.onLoad(() => {
 		}, true);
 	}).width(250).height(50).get();
 
-	var endPosDial;
-	endPosDial = posDial.button("Set end position", () => {
+	endPosDial = props.button("Set end position", () => {
 		dialog.hide();
 		ui.click((screen, world) => {
 			endPos.set(Math.ceil(world.x / 8), Math.ceil(world.y / 8));
@@ -341,9 +354,19 @@ ui.onLoad(() => {
 		}, true);
 	}).width(250).height(50).get();
 
+	props.add("   ");
+
+	rotSlider = props.slider(0, 3, 1, rot, n => {
+		// TODO: display arrow depending on rotation
+		rot = n;
+	}).get();
+
+	props.add(" rotation: ");
+	rotLabel = props.label(() => rot.toString())
+
 	dialog.addCloseButton();
 
-	dialog.buttons.button("pick tile", Icon.pencil, () => {
+	dialog.buttons.button("Pick tile", Icon.pencil, () => {
 		dialog.hide();
 		ui.click((screen, world) => {
 			if (!Vars.world.tile(world.x / 8, world.y / 8)) {
@@ -359,13 +382,12 @@ ui.onLoad(() => {
 		}, true);
 	});
 
-	dialog.buttons.button("clear", Icon.cancel, () => {
+	dialog.buttons.button("Clear", Icon.cancel, () => {
 		clearSelection();
 	});
 });
 
-// weird bug: it shows the last thing you selected, not just the "block". Not complaining tho bc it looks better
-ui.addButton("Block placer", block, () => {
+ui.addButton("Block-Placer", block, () => {
 	dialog.show();
 }, b => { button = b.get() });
 
