@@ -283,7 +283,7 @@ ui.onLoad(() => {
 	placeButtons.right().button("Fill circle floors", Icon.infoCircle, fillCircleFloor)
 		.disabled(() => Vars.state.isCampaign()).width(250);
 	
-	placeButtons.right().button("Place ore", Icon.terrain, placeFloor)
+	placeButtons.right().button("Place floor", Icon.terrain, placeFloor)
 		.disabled(() => Vars.state.isCampaign()).width(250);
 
 	placeButtons.row();
