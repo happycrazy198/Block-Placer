@@ -1,10 +1,7 @@
 name: "block-placer",
 displayName: "Block Placer",
 author: "happycrazy197",
-description: "```
-forked repository 
-dependencies needed: UI Lib
-```",
+description: "forked repository dependencies needed: UI Lib",
 version: "eicular manslaughter 2",
 minGameVersion: "136",
 
