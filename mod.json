@@ -3,7 +3,7 @@
   "displayName": "Block Placer",
   "author": "[#3599ff]Light",
   "description": "Mindustry mod that places any kind of blocks (even modded and hidden) into the world.\n\n Star me on Github!   (please) ",
-  "dependencies": [ UI Lib, Block-Placer ],
+  "dependencies": [ "UI Lib", "Block-Placer" ],
   "version": "eicular manslaughter 2",
   "minGameVersion": 136,
   "hidden": true
