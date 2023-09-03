@@ -4,4 +4,4 @@ author: "happycrazy197",
 description: "forked repository dependencies needed: UI Lib",
 version: "eicular manslaughter 2",
 minGameVersion: "136",
-
+multiplayerCompatible: true
